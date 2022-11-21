@@ -153,3 +153,40 @@ func CreatePrivilege(bonusServiceAddress, username string, balance int) error {
 
 	return nil
 }
+
+func UpdatePrivilege(bonusServiceAddress, username string, balance int) error {
+	requestURL := fmt.Sprintf("%s/api/v1/bonus/%s", bonusServiceAddress, username)
+
+	record := &models.Privilege{
+		Username: username,
+		Balance:  balance,
+	}
+
+	data, err := json.Marshal(record)
+	if err != nil {
+		return fmt.Errorf("encoding error: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewReader(data))
+	if err != nil {
+		fmt.Println("Failed to create an http request")
+		return err
+	}
+
+	client := &http.Client{
+		Timeout: 10 * time.Minute,
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("Failed request to privilege service: %s", err)
+	}
+
+	defer func(Body io.ReadCloser) {
+		if err := Body.Close(); err != nil {
+			fmt.Println("Failed to close response body")
+		}
+	}(res.Body)
+
+	return nil
+}

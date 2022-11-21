@@ -100,3 +100,12 @@ type UserInfo struct {
 	Privilege   *PrivilegeShortInfo `json:"privilege"`
 	TicketsInfo *[]TicketInfo       `json:"tickets"`
 }
+
+type UserInfoCircuitBreaker struct {
+	Privilege   string        `json:"privilege"`
+	TicketsInfo *[]TicketInfo `json:"tickets"`
+}
+
+type ErrorResponse struct {
+	Message string `json:"message"`
+}

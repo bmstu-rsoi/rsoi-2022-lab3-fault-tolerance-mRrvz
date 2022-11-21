@@ -48,10 +48,13 @@ func (gs *GatewayService) CancelTicket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	params := mux.Vars(r)
+	ticketUID := params["ticketUid"]
+
 	err := service.CalncelTicketController(
 		gs.Config.TicketServiceAddress,
 		gs.Config.BonusServiceAddress,
-		username,
+		ticketUID,
 	)
 
 	if err != nil {
@@ -135,7 +138,18 @@ func (gs *GatewayService) BuyTicket(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("failed to get response: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Add("Content-Type", "application/json")
+		resp := models.ErrorResponse{
+			Message: "Bonus Service unavailable",
+		}
+
+		w.WriteHeader(http.StatusServiceUnavailable)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			log.Printf("Failed to encode response: %s\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		return
 	}
 
@@ -166,8 +180,24 @@ func (gs *GatewayService) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		log.Printf("Failed to get response: %s\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		if err != http.ErrServerClosed {
+			log.Printf("Failed to get response: %s\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Add("Content-Type", "application/json")
+		userInfoCB := models.UserInfoCircuitBreaker{
+			TicketsInfo: userInfo.TicketsInfo,
+		}
+
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(userInfoCB); err != nil {
+			log.Printf("Failed to encode response: %s\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		return
 	}
 

@@ -68,6 +68,25 @@ func GetPrivilegeByUsernameHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func UpdatePrivilegeByUsernameHandler(w http.ResponseWriter, r *http.Request) {
+	var record models.Privilege
+
+	err := json.NewDecoder(r.Body).Decode(&record)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	bonusRepo := repository.BonusRepository{}
+	if err := bonusRepo.UpdatePrivilege(&record); err != nil {
+		log.Printf("Failed to create ticket: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func GetHistoryByIdHandler(w http.ResponseWriter, r *http.Request) {
 	bonusRepo := repository.BonusRepository{}
 	params := mux.Vars(r)

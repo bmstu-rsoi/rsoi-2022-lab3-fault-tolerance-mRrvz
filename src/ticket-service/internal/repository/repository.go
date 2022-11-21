@@ -11,6 +11,7 @@ import (
 type Repository interface {
 	GetTicketsByUsername(flightNumber string) ([]*models.Ticket, error)
 	CreateTicket(*models.Ticket) error
+	CancelTicket(username string) error
 }
 
 type TicketRepository struct {
@@ -66,6 +67,21 @@ func (r *TicketRepository) CreateTicket(ticket *models.Ticket) error {
 		ticket.FlightNumber,
 		ticket.Price,
 		ticket.Status,
+	)
+
+	return err
+}
+
+const cancelTicket = `UPDATE ticket SET status = $1 WHERE ticket_uid = $2;`
+
+func (r *TicketRepository) CancelTicket(uid string) error {
+	r.db = db.CreateConnection()
+	defer r.db.Close()
+
+	_, err := r.db.Query(
+		cancelTicket,
+		"CANCELED",
+		uid,
 	)
 
 	return err

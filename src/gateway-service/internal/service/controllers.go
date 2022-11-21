@@ -2,11 +2,17 @@ package service
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/bmstu-rsoi/rsoi-2022-lab2-microservices-mRrvz/src/gateway-service/internal/models"
 )
 
 func CalncelTicketController(ticketServiceAddress, bonusServiceAddress, username string) error {
+	err := CancelTicket(ticketServiceAddress, username)
+	if err != nil {
+		return fmt.Errorf("Failed to get user tickets: %s\n", err)
+	}
+
 	return nil
 }
 
@@ -55,18 +61,18 @@ func UserInfoController(ticketServiceAddress, flightServiceAddress, bonusService
 		return nil, fmt.Errorf("Failed to get user tickets: %s", err)
 	}
 
-	privilege, err := GetPrivilegeShortInfo(bonusServiceAddress, username)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get privilege info: %s", err)
-	}
-
 	userInfo := &models.UserInfo{
 		TicketsInfo: ticketsInfo,
-		Privilege: &models.PrivilegeShortInfo{
-			Status:  privilege.Status,
-			Balance: privilege.Balance,
-		},
+		Privilege:   &models.PrivilegeShortInfo{},
 	}
+
+	privilege, err := GetPrivilegeShortInfo(bonusServiceAddress, username)
+	if err != nil {
+		return userInfo, http.ErrServerClosed
+	}
+
+	userInfo.Privilege.Status = privilege.Status
+	userInfo.Privilege.Balance = privilege.Balance
 
 	return userInfo, nil
 }

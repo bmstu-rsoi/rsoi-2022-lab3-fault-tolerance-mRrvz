@@ -30,6 +30,19 @@ func GetTicketsByUsernameHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func CancelTicketByUidHandler(w http.ResponseWriter, r *http.Request) {
+	ticketRepo := repository.TicketRepository{}
+	params := mux.Vars(r)
+	err := ticketRepo.CancelTicket(params["uid"])
+	if err != nil {
+		log.Printf("Failed to get ticket: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func BuyTicketHandler(w http.ResponseWriter, r *http.Request) {
 	var ticket models.Ticket
 

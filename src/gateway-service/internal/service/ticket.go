@@ -12,6 +12,26 @@ import (
 	"github.com/google/uuid"
 )
 
+func CancelTicket(ticketsServiceAddress, uid string) error {
+	requestURL := fmt.Sprintf("%s/api/v1/tickets/%s", ticketsServiceAddress, uid)
+
+	req, err := http.NewRequest(http.MethodPost, requestURL, nil)
+	if err != nil {
+		fmt.Println("Failed to create an http request")
+		return err
+	}
+
+	client := &http.Client{
+		Timeout: 10 * time.Minute,
+	}
+
+	if _, err = client.Do(req); err != nil {
+		return fmt.Errorf("Failed request to flight service: %w", err)
+	}
+
+	return nil
+}
+
 func GetUserTickets(ticketsServiceAddress, username string) (*[]models.Ticket, error) {
 	requestURL := fmt.Sprintf("%s/api/v1/tickets/%s", ticketsServiceAddress, username)
 

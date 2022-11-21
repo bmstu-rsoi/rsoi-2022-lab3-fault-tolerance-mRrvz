@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/bmstu-rsoi/rsoi-2022-lab2-microservices-mRrvz/src/gateway-service/internal/models"
 	"github.com/bmstu-rsoi/rsoi-2022-lab2-microservices-mRrvz/src/gateway-service/internal/service"
 )
 
@@ -23,7 +24,18 @@ func (gs *GatewayService) GetPrivilege(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("Failed to get response: %s\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.Header().Add("Content-Type", "application/json")
+		resp := models.ErrorResponse{
+			Message: "Bonus Service unavailable",
+		}
+
+		w.WriteHeader(http.StatusServiceUnavailable)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			log.Printf("Failed to encode response: %s\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
 		return
 	}
 
